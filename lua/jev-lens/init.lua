@@ -167,7 +167,7 @@ function M.judge()
     if not v then
       notify("no diff since baseline")
     end
-  end)
+  end, { force = true })
 end
 
 function M.reviewed()

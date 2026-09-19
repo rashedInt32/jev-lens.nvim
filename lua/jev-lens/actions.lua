@@ -114,13 +114,21 @@ function M.judge_cmd()
 end
 
 --- Run the judge now for this repo. Callback receives the exit code.
-function M.judge(root, cb)
+--- `opts.force` asks again even when the tree has not moved, which is what a
+--- person pressing the re-judge key means.
+---@param root string
+---@param cb? fun(code: integer)
+---@param opts? { force?: boolean }
+function M.judge(root, cb, opts)
   local cmd = M.judge_cmd()
   if not cmd then
     notify("judge not found: set judge_cmd or $JEV_LENS_ROOT", vim.log.levels.ERROR)
     return false
   end
   local args = vim.list_extend(vim.deepcopy(cmd), { "--cwd", root, "--reason", "manual" })
+  if opts and opts.force then
+    args[#args + 1] = "--force"
+  end
   notify("judging…")
   vim.system(args, { text = true }, function(res)
     vim.schedule(function()

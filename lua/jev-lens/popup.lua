@@ -149,9 +149,11 @@ function M.show(root, v)
     M.close()
     Actions.jump(v)
   end)
+  -- Go through the module entry point, not Actions directly: it forgets the
+  -- shown id and re-checks, so the popup comes back instead of dead-ending.
   map(buf, k.judge, function()
     M.close()
-    Actions.judge(root)
+    require("jev-lens").judge()
   end)
   return win, buf
 end

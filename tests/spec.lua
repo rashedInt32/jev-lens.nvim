@@ -216,6 +216,53 @@ it("popup shows the verdict in a float with the rendered lines and keys", functi
   truthy(not Popup.is_open())
 end)
 
+it("Actions.judge passes --force only when asked", function()
+  local log = repo_root .. "/judge-args"
+  local script = repo_root .. "/fake-judge.sh"
+  write(script, '#!/bin/sh\necho "$@" >> "' .. log .. '"\n')
+  vim.fn.setfperm(script, "rwxr-xr-x")
+  local Config = require("jev-lens.config")
+  local prev = Config.options.judge_cmd
+  Config.options.judge_cmd = { "/bin/sh", script }
+
+  local Actions = require("jev-lens.actions")
+  local done = false
+  Actions.judge(repo_root, function()
+    done = true
+  end)
+  vim.wait(3000, function()
+    return done
+  end)
+  done = false
+  Actions.judge(repo_root, function()
+    done = true
+  end, { force = true })
+  vim.wait(3000, function()
+    return done
+  end)
+  Config.options.judge_cmd = prev
+
+  local args = vim.split(vim.trim(read(log)), "\n")
+  eq(#args, 2)
+  lacks(args[1], "--force")
+  has(args[2], "--force")
+end)
+
+it("R goes through the module judge, which forgets the id so the popup returns", function()
+  local lens = require("jev-lens")
+  local prev = lens.judge
+  local called = false
+  lens.judge = function()
+    called = true
+    return true
+  end
+  Popup.show(repo_root, fixture)
+  vim.api.nvim_feedkeys("R", "x", false)
+  lens.judge = prev
+  truthy(called, "R should call jev-lens.judge, not Actions.judge directly")
+  truthy(not Popup.is_open(), "R closes the popup before re-judging")
+end)
+
 it("watcher opens the popup once when a new verdict lands, not for green", function()
   put_state({ version = 1, root = repo_root, baseline = "aaaa" })
   pcall(os.remove, Repo.verdict_path(repo_root))
