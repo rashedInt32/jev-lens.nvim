@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "0123456789abcdef",
+  "repo": "/tmp/fixture-repo",
+  "mode": "active",
+  "reason": "stop",
+  "judged_at": "2026-09-19T10:00:00Z",
+  "session": { "id": "sess-1", "name": "base-7a", "pid": 4242, "tmux": "Base:@4.%4", "cwd": "/tmp/fixture-repo" },
+  "baseline": "aaaa",
+  "tree": "bbbb",
+  "summary": { "files": 3, "added": 84, "removed": 12, "skipped": ["pnpm-lock.yaml"] },
+  "look": { "p_ok": 0.07, "verdict": "look" },
+  "files": [
+    { "path": "src/auth/session.ts", "status": "M", "added": 40, "removed": 10, "attention": 0.88, "flagged": true, "kind": "behavior_change", "kind_confidence": 0.9, "prompt_index": 0, "prompt_confidence": 0.85, "debris": {} },
+    { "path": "src/app.ts", "status": "M", "added": 30, "removed": 2, "attention": 0.81, "flagged": true, "kind": "debris", "kind_confidence": 0.84, "prompt_index": 0, "prompt_confidence": 0.9, "debris": { "comment": 4, "debug": 1 } },
+    { "path": "src/util/format.ts", "status": "M", "added": 14, "removed": 0, "attention": 0.12, "flagged": false, "kind": "routine", "kind_confidence": 0.95, "prompt_index": 0, "prompt_confidence": 0.8, "debris": {} }
+  ],
+  "debris": [
+    { "file": "src/app.ts", "line": 1, "end_line": 2, "kind": "comment", "lines": ["// Grab the value", "// and export it"], "p": 0.92 },
+    { "file": "src/app.ts", "line": 4, "end_line": 4, "kind": "debug", "lines": ["console.log(a);"], "p": 0.95 }
+  ],
+  "prompts": ["add session refresh to the auth flow"],
+  "reviewed": false,
+  "stale": false
+}
