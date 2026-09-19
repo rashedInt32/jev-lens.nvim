@@ -17,7 +17,7 @@ The judging happens in [jev-lens](https://github.com/rashedInt32/jev-lens),
 a Claude Code plugin. This plugin just watches the verdict it writes and
 draws it. No API calls, no key, nothing leaves nvim.
 
-![jev-lens popup](docs/screenshot.png)
+https://github.com/user-attachments/assets/f5be3fb4-5b1f-4ed3-a8b7-996a354311f1
 
 ## What the keys do
 
