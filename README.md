@@ -34,6 +34,23 @@ https://github.com/user-attachments/assets/f5be3fb4-5b1f-4ed3-a8b7-996a354311f1
 - `R` judges again now.
 - `q` closes. The same files will not pop again until something new joins.
 
+## Unverified changes
+
+When [jev-gates](https://github.com/rashedInt32/jev-gates) 0.4 or later is
+installed, its proof gate reports which changes could alter behaviour and had
+nothing run, tested, or checked after the edit. jev-lens copies them into the
+verdict, and the popup lists them under the file rows:
+
+```
+  unverified: 2 changes, nothing ran, tested, or checked after the edit
+    src/auth/session.ts:40   branch changed in refresh: if (!token) return…  0.05
+    src/app.ts:3             value changed in limit: 3 to 5                  0.12
+```
+
+The number is Jev's probability that evidence exists. Each row is a file row,
+so `l` opens lazydiff on it. An unverified change opens the popup even when
+every file looks routine.
+
 ## When it stays quiet
 
 Green is one notify line, never a popup. So is a verdict where no file

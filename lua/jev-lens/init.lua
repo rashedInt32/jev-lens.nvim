@@ -79,13 +79,16 @@ function M.route(root, v)
     return "deferred"
   end
   local reason = nil
-  if v.notify_only and v.notify_only ~= vim.NIL then
+  -- An unverified change is a row worth reading on its own: it overrides the
+  -- quiet reasons that come from the look questions, not the dismissals.
+  local unverified = #Verdict.unverified(v) > 0
+  if v.notify_only and v.notify_only ~= vim.NIL and not unverified then
     reason = v.notify_only -- judge-side: tiny diff
-  elseif v.look.verdict == "ok" then
+  elseif v.look.verdict == "ok" and not unverified then
     reason = "ok"
-  elseif not Verdict.any_flagged(v) then
+  elseif not Verdict.any_flagged(v) and not unverified then
     reason = "no file stands out"
-  elseif all_flagged_cosmetic(v) then
+  elseif all_flagged_cosmetic(v) and not unverified then
     reason = "cosmetic only"
   elseif quiet_next[root] then
     reason = "after strip"

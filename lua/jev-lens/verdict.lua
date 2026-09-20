@@ -176,6 +176,26 @@ function M.render(v)
     meta[#meta + 1] = { kind = "file", file = f, flagged = f.flagged }
   end
 
+  -- Changes the jev-gates proof gate found risky with nothing run after the
+  -- edit. Each row is a file row too, so l opens lazydiff on it.
+  local unverified = M.unverified(v)
+  if #unverified > 0 then
+    lines[#lines + 1] = ("  unverified: %d %s nothing ran, tested, or checked after the edit"):format(#unverified, #unverified == 1 and "change," or "changes,")
+    meta[#meta + 1] = { kind = "unverified_header" }
+    for _, u in ipairs(unverified) do
+      local where = ("%s:%d"):format(u.file, u.line or 0)
+      if #where > widest + 6 then
+        where = "…" .. where:sub(-(widest + 5))
+      end
+      local summary = u.summary or ""
+      if #summary > 44 then
+        summary = summary:sub(1, 43) .. "…"
+      end
+      lines[#lines + 1] = ("    %-" .. (widest + 6) .. "s %-44s %s"):format(where, summary, fmt_p(u.p_evidence))
+      meta[#meta + 1] = { kind = "file", file = { path = u.file, line = u.line }, flagged = true, unverified = u }
+    end
+  end
+
   if #v.summary.skipped > 0 then
     lines[#lines + 1] = ("  skipped: %s"):format(table.concat(v.summary.skipped, ", "))
     meta[#meta + 1] = { kind = "skipped" }
@@ -189,6 +209,17 @@ function M.render(v)
   )
   meta[#meta + 1] = { kind = "keys" }
   return lines, meta
+end
+
+--- The proof gate's unverified changes, always a list.
+---@param v table
+---@return table[]
+function M.unverified(v)
+  local u = v.unverified
+  if type(u) ~= "table" or u == vim.NIL then
+    return {}
+  end
+  return u
 end
 
 --- Number of files over the attention bar.
@@ -217,6 +248,14 @@ end
 ---@return string
 function M.oneline(v, reason)
   local flagged = M.flagged_count(v)
+  local unverified = #M.unverified(v)
+  if unverified > 0 then
+    local line = ("jev-lens: %d unverified %s, %d of %d files need a look"):format(unverified, unverified == 1 and "change" or "changes", flagged, v.summary.files)
+    if reason then
+      line = line .. " · " .. reason
+    end
+    return line
+  end
   if v.look.verdict == "ok" then
     return ("jev-lens: nothing needs you (%s ok, %d files, %d debris)"):format(fmt_p(v.look.p_ok), v.summary.files, #v.debris)
   end

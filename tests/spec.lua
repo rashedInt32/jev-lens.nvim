@@ -116,6 +116,53 @@ it("render shows ok and unsure and the stale badge", function()
   has(Verdict.oneline(v), "2 of 3 files need a look, 2 debris")
 end)
 
+it("render lists unverified changes as file rows and the one-liner leads with them", function()
+  local v = vim.deepcopy(fixture)
+  v.unverified = {
+    { file = "src/auth/session.ts", line = 40, kind = "branch", summary = "branch changed in refresh: if (!token) return null;", p_risk = 0.91, p_evidence = 0.05 },
+    { file = "src/app.ts", line = 3, kind = "default", summary = "value changed in limit: 3 to 5", p_risk = 0.92, p_evidence = 0.12 },
+  }
+  v.summary.unverified = 2
+  local lines, meta = Verdict.render(v)
+  local header
+  for i, l in ipairs(lines) do
+    if l:find("unverified: 2 changes", 1, true) then
+      header = i
+    end
+  end
+  truthy(header, "unverified header row")
+  eq(meta[header].kind, "unverified_header")
+  has(lines[header + 1], "src/auth/session.ts:40")
+  has(lines[header + 1], "branch changed in refresh")
+  has(lines[header + 1], "0.05")
+  eq(meta[header + 1].kind, "file")
+  eq(meta[header + 1].file.path, "src/auth/session.ts")
+  eq(meta[header + 1].flagged, true)
+  has(lines[header + 2], "src/app.ts:3")
+  has(Verdict.oneline(v), "2 unverified changes, 2 of 3 files need a look")
+  -- Without the field, nothing changes.
+  local plain = vim.deepcopy(fixture)
+  plain.unverified = nil
+  lacks(table.concat(Verdict.render(plain), "\n"), "unverified")
+end)
+
+it("route opens the popup for an unverified change even when the look is green", function()
+  local v = vim.deepcopy(fixture)
+  v.look = { p_ok = 0.95, verdict = "ok" }
+  for _, f in ipairs(v.files) do
+    f.flagged = false
+  end
+  v.unverified = { { file = "src/app.ts", line = 3, kind = "default", summary = "value changed in limit: 3 to 5", p_risk = 0.92, p_evidence = 0.12 } }
+  v.summary.unverified = 1
+  local out = require("jev-lens").route(repo_root, v)
+  eq(out, "popup")
+  Popup.close()
+  v.unverified = {}
+  v.summary.unverified = 0
+  eq(require("jev-lens").route(repo_root, v), "notify")
+  has(notices[#notices].msg, "nothing needs you")
+end)
+
 it("pending: unreviewed shows, reviewed hides, shadow hidden unless asked", function()
   put_verdict(fixture)
   put_state({ version = 1, root = repo_root, baseline = "aaaa" })
